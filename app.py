@@ -58,6 +58,16 @@ def get_book(connection, book_id):
     return serialize_book(book_representation)
 
 
+def delete_book(connection, book_id):
+    cursor = connection.cursor()
+
+    cursor.execute(f"delete from books where id={book_id}")
+    connection.commit()
+
+    # No Content
+    return "", 204
+
+
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
 def book(book_id):
     connection = sqlite3.connect("db.sqlite")
@@ -68,7 +78,7 @@ def book(book_id):
     elif request.method == "PATCH":
         return "book partial update will be there"
     elif request.method == "DELETE":
-        return "book delete will be there"
+        return delete_book(connection, book_id)
 
 
 if __name__ == "__main__":
