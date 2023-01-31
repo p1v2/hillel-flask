@@ -29,7 +29,7 @@ def create_book(connection):
     cursor.execute(f"insert into books (name) values ('{book_name}')")
 
     connection.commit()
-    return {"name": book_name}, 210
+    return {"name": book_name}, 201
 
 
 @app.route("/books", methods=["GET", "POST"])
@@ -79,7 +79,7 @@ def put_book(connection, book_id):
     cursor.execute(f"UPDATE books SET name = '{new_book_name}' WHERE id={book_id} ")
 
     connection.commit()
-    return {"name": new_book_name}, 201
+    return {"name": new_book_name}, 200
 
 
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
