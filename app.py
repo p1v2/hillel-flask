@@ -32,9 +32,33 @@ def create_book(connection):
     return "OK"
 
 
-@app.route("/books", methods=["GET", "POST"])
+def update_book(connection):
+    cursor = connection.cursor()
+
+    body = request.json
+    book_id = body["id"]
+    book_name = body["name"]
+    if book_name == "":
+        return {"error": "Book name cannot be empty"}, 400
+
+    cursor.execute(f"UPDATE books SET (name) = '{book_name}' WHERE id = {book_id}")
+    connection.commit()
+    return "", 200
+
+
+def delete_book(connection, book_id):
+    cursor = connection.cursor()
+
+    cursor.execute(f"delete from books where id={book_id}")
+    connection.commit()
+
+    # No Content
+    return "", 204
+
+
+@app.route("/books", methods=["GET", "POST", "PUT"])
 def books():
-    connection = sqlite3.connect("db.sqlite")
+    connection = sqlite3.connect("db.sqlite", check_same_thread=False)
     try:
         if request.method == "GET":
             # GET /books - list of all books
@@ -42,6 +66,9 @@ def books():
         elif request.method == "POST":
             # POST /books - create a book
             return create_book(connection)
+        elif request.method == "PUT":
+            # PUT /books - update the book
+            return update_book(connection)
     finally:
         connection.close()
 
@@ -58,23 +85,13 @@ def get_book(connection, book_id):
     return serialize_book(book_representation)
 
 
-def delete_book(connection, book_id):
-    cursor = connection.cursor()
-
-    cursor.execute(f"delete from books where id={book_id}")
-    connection.commit()
-
-    # No Content
-    return "", 204
-
-
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
 def book(book_id):
-    connection = sqlite3.connect("db.sqlite")
+    connection = sqlite3.connect("db.sqlite", check_same_thread=False)
     if request.method == "GET":
         return get_book(connection, book_id)
     elif request.method == "PUT":
-        return "book update will be there"
+        return update_book(connection)
     elif request.method == "PATCH":
         return "book partial update will be there"
     elif request.method == "DELETE":
@@ -82,4 +99,4 @@ def book(book_id):
 
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(port=5000, debug=True)
