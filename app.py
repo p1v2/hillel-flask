@@ -6,6 +6,18 @@ from serializers import serialize_book
 app = Flask(__name__)
 
 
+def get_book(connection, book_id):
+    cursor = connection.cursor()
+
+    response = cursor.execute(f"select * from books where id={book_id}")
+    book_representation = response.fetchone()
+
+    if book_representation is None:
+        return {"error": "Book not found"}, 404
+
+    return serialize_book(book_representation)
+
+
 def get_books(connection):
     cursor = connection.cursor()
     response = cursor.execute("select * from books")
@@ -42,7 +54,8 @@ def update_book(connection, book_id):
 
     cursor.execute(f"UPDATE books SET (name) = '{book_name}' WHERE id = {book_id}")
     connection.commit()
-    return "", 200
+
+    return get_book(connection, book_id)
 
 
 def delete_book(connection, book_id):
@@ -55,7 +68,7 @@ def delete_book(connection, book_id):
     return "", 204
 
 
-@app.route("/books", methods=["GET", "POST", "PUT"])
+@app.route("/books/", methods=["GET", "POST", "PUT"])
 def books():
     connection = sqlite3.connect("db.sqlite", check_same_thread=False)
     try:
@@ -67,18 +80,6 @@ def books():
             return create_book(connection)
     finally:
         connection.close()
-
-
-def get_book(connection, book_id):
-    cursor = connection.cursor()
-
-    response = cursor.execute(f"select * from books where id={book_id}")
-    book_representation = response.fetchone()
-
-    if book_representation is None:
-        return {"error": "Book not found"}, 404
-
-    return serialize_book(book_representation)
 
 
 @app.route("/books/<int:book_id>/", methods=["GET", "PUT", "PATCH", "DELETE"])
