@@ -32,11 +32,10 @@ def create_book(connection):
     return "OK"
 
 
-def update_book(connection):
+def update_book(connection, book_id):
     cursor = connection.cursor()
 
     body = request.json
-    book_id = body["id"]
     book_name = body["name"]
     if book_name == "":
         return {"error": "Book name cannot be empty"}, 400
@@ -66,9 +65,6 @@ def books():
         elif request.method == "POST":
             # POST /books - create a book
             return create_book(connection)
-        elif request.method == "PUT":
-            # PUT /books - update the book
-            return update_book(connection)
     finally:
         connection.close()
 
@@ -85,13 +81,13 @@ def get_book(connection, book_id):
     return serialize_book(book_representation)
 
 
-@app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
+@app.route("/books/<int:book_id>/", methods=["GET", "PUT", "PATCH", "DELETE"])
 def book(book_id):
     connection = sqlite3.connect("db.sqlite", check_same_thread=False)
     if request.method == "GET":
         return get_book(connection, book_id)
     elif request.method == "PUT":
-        return update_book(connection)
+        return update_book(connection, book_id)
     elif request.method == "PATCH":
         return "book partial update will be there"
     elif request.method == "DELETE":
