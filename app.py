@@ -68,13 +68,34 @@ def delete_book(connection, book_id):
     return "", 204
 
 
+def rename_book(connection, book_id):
+    body = request.json
+    book_name = body["name"]
+    if book_name == "":
+        return {"error": "Book name cannot be empty"}, 400
+    cursor = connection.cursor()
+    response = cursor.execute(f"select * from books where id={book_id}").fetchone()
+    connection.commit()
+    if response is None:
+        return {"error": "Book not found"}, 404
+    else:
+        try:
+            cursor.execute(f"UPDATE books set Name = '{book_name}' WHERE id = {book_id}")
+            response = cursor.execute(f"select * from books where id={book_id}")
+            book_representation = response.fetchone()
+            connection.commit()
+            return serialize_book(book_representation)
+        except:
+            return {"error": "There is a book with the same name in the database"}, 404
+
+
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
 def book(book_id):
     connection = sqlite3.connect("db.sqlite")
     if request.method == "GET":
         return get_book(connection, book_id)
     elif request.method == "PUT":
-        return "book update will be there"
+        return rename_book(connection, book_id)
     elif request.method == "PATCH":
         return "book partial update will be there"
     elif request.method == "DELETE":
