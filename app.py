@@ -4,6 +4,34 @@ import sqlite3
 from serializers import serialize_book
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+
+
+def put_update_book(connection, book_id):
+    body = request.json
+    new_book_name = body["name"]
+    cursor = connection.cursor()
+
+    # Check updating book in the db
+    response = cursor.execute(f'select name from books where id = {book_id}')
+    check_book = response.fetchone()
+    if not check_book:
+        return {"error": "Updating book does not exist"}, 400
+
+    # Check the book name
+    elif new_book_name == "":
+        return {"error": "Book name cannot be empty"}, 400
+
+    # Update query execute
+    cursor.execute(
+        f"""update books
+        set name = '{new_book_name}'
+        where id = {book_id}
+        """
+    )
+
+    connection.commit()
+    return "OK", 200
 
 
 def get_books(connection):
@@ -74,7 +102,7 @@ def book(book_id):
     if request.method == "GET":
         return get_book(connection, book_id)
     elif request.method == "PUT":
-        return "book update will be there"
+        return put_update_book(connection, book_id)
     elif request.method == "PATCH":
         return "book partial update will be there"
     elif request.method == "DELETE":
