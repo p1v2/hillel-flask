@@ -29,7 +29,9 @@ def create_book(connection):
     cursor.execute(f"insert into books (name) values ('{book_name}')")
 
     connection.commit()
-    return "OK"
+
+    # HTTP 201 - created
+    return {"name": book_name}, 201
 
 
 @app.route("/books", methods=["GET", "POST"])
