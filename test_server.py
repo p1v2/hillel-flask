@@ -1,9 +1,11 @@
+from datetime import datetime
+
 import requests
 
-response = requests.delete(
-    "http://127.0.0.1:5000/books/1",
-    json={"name": "Book name"}
+start = datetime.now()
+response = requests.get(
+    "http://127.0.0.1:5001/books",
 )
+end = datetime.now()
 
-print(response.status_code)
-print(response.json())
+print((end - start).total_seconds())
