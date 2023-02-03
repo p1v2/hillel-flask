@@ -73,11 +73,15 @@ def update_book(connection, book_id):
 
     new_book_name = body["name"]
 
-    if new_book_name== "":
+    if new_book_name == "":
         return {"error": "Book name is required"}, 400
 
-    cursor = connection.cursor()
 
+    cursor = connection.cursor()
+    response = cursor.execute(f'Select * from books where id={book_id}')
+    book_repr = response.fetchone()
+    if book_repr is None:
+        return {'error': 'book_repr'}, 404
     cursor.execute(f"""UPDATE books 
     SET name = '{new_book_name}' 
     WHERE id={book_id} """)
