@@ -10,28 +10,22 @@ app.config['JSON_AS_ASCII'] = False
 def put_update_book(connection, book_id):
     body = request.json
     new_book_name = body["name"]
-    cursor = connection.cursor()
-
-    # Check updating book in the db
-    response = cursor.execute(f'select name from books where id = {book_id}')
-    check_book = response.fetchone()
-    if not check_book:
-        return {"error": "Updating book does not exist"}, 400
 
     # Check the book name
-    elif new_book_name == "":
+    if new_book_name == "":
         return {"error": "Book name cannot be empty"}, 400
 
     # Update query execute
+    cursor = connection.cursor()
     cursor.execute(
         f"""update books
         set name = '{new_book_name}'
         where id = {book_id}
         """
     )
-
     connection.commit()
-    return "OK", 200
+
+    return {'id': book_id, 'name': new_book_name}
 
 
 def get_books(connection):
@@ -110,4 +104,4 @@ def book(book_id):
 
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(port=5000, debug=True)
