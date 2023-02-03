@@ -68,13 +68,32 @@ def delete_book(connection, book_id):
     return "", 204
 
 
+def update_book(connection, book_id):
+    body = request.json
+
+    new_book_name = body["name"]
+
+    if new_book_name== "":
+        return {"error": "Book name is required"}, 400
+
+    cursor = connection.cursor()
+
+    cursor.execute(f"""UPDATE books 
+    SET name = '{new_book_name}' 
+    WHERE id={book_id} """)
+
+    connection.commit()
+    return {"name": new_book_name}, 200
+
+
+
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
 def book(book_id):
     connection = sqlite3.connect("db.sqlite")
     if request.method == "GET":
         return get_book(connection, book_id)
     elif request.method == "PUT":
-        return "book update will be there"
+        return update_book(connection, book_id)
     elif request.method == "PATCH":
         return "book partial update will be there"
     elif request.method == "DELETE":
@@ -82,4 +101,4 @@ def book(book_id):
 
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(port=5020, debug=True)
