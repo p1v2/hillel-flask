@@ -6,6 +6,17 @@ from serializers import serialize_book
 app = Flask(__name__)
 
 
+def update_book(connection, book_id):
+    body = request.json
+    book_name = body['name']
+    cursor = connection.cursor()
+    cursor.execute(f'''update books set name = '{book_name}' where id = {book_id} ''')
+    connection.commit()
+
+    if book_name == '':
+        return {"Error": "Input book name"}, 400
+
+
 def get_books(connection):
     cursor = connection.cursor()
     response = cursor.execute("select * from books")
