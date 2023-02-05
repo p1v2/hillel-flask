@@ -1,5 +1,4 @@
 from flask import Flask, request
-
 import sqlite3
 
 from serializers import serialize_book
