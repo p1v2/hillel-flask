@@ -29,7 +29,7 @@ def create_book(connection):
     cursor.execute(f"insert into books (name) values ('{book_name}')")
 
     connection.commit()
-    return "OK"
+    return {"name": book_name}, 201
 
 
 @app.route("/books", methods=["GET", "POST"])
@@ -58,6 +58,18 @@ def get_book(connection, book_id):
     return serialize_book(book_representation)
 
 
+def put_book(connection, book_id):
+    cursor = connection.cursor()
+
+    response = cursor.execute(f"update books set id={book_id}")
+    book_representation = response.fetchone()
+
+    if book_representation is None:
+        return {"error": "Book not found"}, 404
+
+    return serialize_book(book_representation)
+
+
 def delete_book(connection, book_id):
     cursor = connection.cursor()
 
@@ -74,7 +86,7 @@ def book(book_id):
     if request.method == "GET":
         return get_book(connection, book_id)
     elif request.method == "PUT":
-        return "book update will be there"
+        return put_book(connection, book_id)
     elif request.method == "PATCH":
         return "book partial update will be there"
     elif request.method == "DELETE":
