@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, requestf
 import sqlite3
 
 from serializers import serialize_book
@@ -59,15 +59,21 @@ def get_book(connection, book_id):
 
 
 def put_book(connection, book_id):
+    body = request.json
+    update_book_name = body["name"]
+    if update_book_name == "":  # Checking for an empty term in the book title
+        return {"error": "Book name cannot be empty"}, 400
+
     cursor = connection.cursor()
-
-    response = cursor.execute(f"update books set id={book_id}")
+    response = cursor.execute(f"SELECT * FROM books WHERE id = {book_id}")
     book_representation = response.fetchone()
-
-    if book_representation is None:
+    if book_representation is None:  # Checking that the book with this id exists
         return {"error": "Book not found"}, 404
 
-    return serialize_book(book_representation)
+    cursor = connection.cursor()
+    cursor.execute(f"UPDATE books SET name = '{update_book_name}' WHERE id = {book_id}")
+    connection.commit()
+    return {"id": book_id, "name": update_book_name}, 200
 
 
 def delete_book(connection, book_id):
