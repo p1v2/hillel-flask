@@ -11,9 +11,13 @@ def put_update_book(connection, book_id):  # PUT request
     if new_book_name == '':
         return {'error': 'Book name cannot be empty'}, 400
     cursor = connection.cursor()
+    response = cursor.execute(f'Select * from books where id = {book_id}')
+    book_report = response.fetchone()
+    if book_report is None:
+        return {'error': 'Book doesnt exist'}, 404
     cursor.execute(f"update books set name = '{new_book_name}' where id = {book_id}")
     connection.commit()
-    return {'id': book_id, 'name': new_book_name}
+    return {'id': book_id, 'name': new_book_name}, 200
 
 
 def get_books(connection):
