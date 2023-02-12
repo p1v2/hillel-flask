@@ -1,9 +1,23 @@
 from flask import Flask, request
 import sqlite3
-
 from serializers import serialize_book
 
 app = Flask(__name__)
+
+
+def put_update_book(connection, book_id):  # PUT request
+    body = request.json
+    new_book_name = body['name']
+    if new_book_name == '':
+        return {'error': 'Book name cannot be empty'}, 400
+    cursor = connection.cursor()
+    response = cursor.execute(f'Select * from books where id = {book_id}')
+    book_report = response.fetchone()
+    if book_report is None:
+        return {'error': 'Book doesnt exist'}, 404
+    cursor.execute(f"update books set name = '{new_book_name}' where id = {book_id}")
+    connection.commit()
+    return {'id': book_id, 'name': new_book_name}, 200
 
 
 def get_books(connection):
@@ -74,7 +88,7 @@ def book(book_id):
     if request.method == "GET":
         return get_book(connection, book_id)
     elif request.method == "PUT":
-        return "book update will be there"
+        return put_update_book(connection, book_id)
     elif request.method == "PATCH":
         return "book partial update will be there"
     elif request.method == "DELETE":
@@ -82,4 +96,4 @@ def book(book_id):
 
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(port=5000, debug=True)
