@@ -57,6 +57,7 @@ def get_book(connection, book_id):
 
     return serialize_book(book_representation)
 
+
 def put_book(connection, book_id):
     body = request.json
 
@@ -95,8 +96,6 @@ def patch_book(connection, book_id):
 
     connection.commit()
     return "OK"
-
-
 
 
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
