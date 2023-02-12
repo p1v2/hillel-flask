@@ -57,6 +57,20 @@ def get_book(connection, book_id):
 
     return serialize_book(book_representation)
 
+def put_book(connection, book_id):
+    body = request.json
+
+    book_name = body["name"]
+
+    if book_name == "":
+        return {"error": "Book name cannot be empty"}, 400
+
+    cursor = connection.cursor()
+    cursor.execute(f"insert into books (name) values ({book_id}, '{book_name}')")
+
+    connection.commit()
+    return "OK"
+
 
 def delete_book(connection, book_id):
     cursor = connection.cursor()
@@ -68,15 +82,33 @@ def delete_book(connection, book_id):
     return "", 204
 
 
+def patch_book(connection, book_id):
+    body = request.json
+
+    book_name = body["name"]
+
+    if book_name == "":
+        return {"error": "Book name cannot be empty"}, 400
+
+    cursor = connection.cursor()
+    cursor.execute(f"update books set (name) = {book_name} where id = {book_id}")
+
+    connection.commit()
+    return "OK"
+
+
+
+
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
 def book(book_id):
     connection = sqlite3.connect("db.sqlite")
     if request.method == "GET":
         return get_book(connection, book_id)
     elif request.method == "PUT":
-        return "book update will be there"
+        delete_book(connection, book_id)
+        return put_book(connection, book_id)
     elif request.method == "PATCH":
-        return "book partial update will be there"
+        return patch_book(connection, book_id)
     elif request.method == "DELETE":
         return delete_book(connection, book_id)
 
