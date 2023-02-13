@@ -59,6 +59,14 @@ def get_book(connection, book_id):
 
 
 def put_book(connection, book_id):
+    cursor = connection.cursor()
+
+    response = cursor.execute(f"select * from books where id={book_id}")
+    book_representation = response.fetchone()
+
+    if book_representation is None:
+        return {"error": "Book not found"}, 404
+
     body = request.json
 
     book_name = body["name"]
@@ -66,11 +74,13 @@ def put_book(connection, book_id):
     if book_name == "":
         return {"error": "Book name cannot be empty"}, 400
 
-    cursor = connection.cursor()
-    cursor.execute(f"insert into books (name) values ({book_id}, '{book_name}')")
+    cursor.execute(f"update books set (name) = ('{book_name}') where id = {book_id}")
+
+    response = cursor.execute(f"select * from books where id={book_id}")
+    book_representation = response.fetchone()
 
     connection.commit()
-    return "OK"
+    return serialize_book(book_representation)
 
 
 def delete_book(connection, book_id):
@@ -84,6 +94,14 @@ def delete_book(connection, book_id):
 
 
 def patch_book(connection, book_id):
+    cursor = connection.cursor()
+
+    response = cursor.execute(f"select * from books where id={book_id}")
+    book_representation = response.fetchone()
+
+    if book_representation is None:
+        return {"error": "Book not found"}, 404
+
     body = request.json
 
     book_name = body["name"]
@@ -91,25 +109,29 @@ def patch_book(connection, book_id):
     if book_name == "":
         return {"error": "Book name cannot be empty"}, 400
 
-    cursor = connection.cursor()
-    cursor.execute(f"update books set (name) = {book_name} where id = {book_id}")
+    cursor.execute(f"update books set (name) = ('{book_name}') where id = {book_id}")
+
+    response = cursor.execute(f"select * from books where id={book_id}")
+    book_representation = response.fetchone()
 
     connection.commit()
-    return "OK"
+    return serialize_book(book_representation)
 
 
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
 def book(book_id):
     connection = sqlite3.connect("db.sqlite")
-    if request.method == "GET":
-        return get_book(connection, book_id)
-    elif request.method == "PUT":
-        delete_book(connection, book_id)
-        return put_book(connection, book_id)
-    elif request.method == "PATCH":
-        return patch_book(connection, book_id)
-    elif request.method == "DELETE":
-        return delete_book(connection, book_id)
+    try:
+        if request.method == "GET":
+            return get_book(connection, book_id)
+        elif request.method == "PUT":
+            return put_book(connection, book_id)
+        elif request.method == "PATCH":
+            return patch_book(connection, book_id)
+        elif request.method == "DELETE":
+            return delete_book(connection, book_id)
+    finally:
+        connection.close()
 
 
 if __name__ == "__main__":
