@@ -68,6 +68,20 @@ def delete_book(connection, book_id):
     return "", 204
 
 
+def update_book(connection, book_id):
+    cursor = connection.cursor()
+
+    body = request.json
+    book_name = body["name"]
+    if book_name == "":
+        return {"error": "Book name cannot be empty"}, 400
+
+    cursor.execute(f"UPDATE books SET (name) = '{book_name}' WHERE id = {book_id}")
+    connection.commit()
+
+    return get_book(connection, book_id)
+
+
 @app.route("/books/<int:book_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
 def book(book_id):
     connection = sqlite3.connect("db.sqlite")
